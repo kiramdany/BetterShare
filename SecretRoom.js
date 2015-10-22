@@ -39,7 +39,10 @@ var score = [0,0];
 
 function preLoad () {
 	//copies array as using shift, and thus can reset at end. Or could use an incrementer and track within the code
-	shares = sharesOrig.slice();
+	//shares = sharesOrig.slice();
+	
+	//Randomly generated array
+	randomShares(10);
 	
 	/*Graphically
 	//adds div to screen which will contain game
@@ -219,6 +222,37 @@ function createStatement (statementNumber) {
 function incrementScore (amount) { //amount should really only by 0 or 1
 	score[0] += amount;
 	score[1] += 1;
+}
+
+function randomShares(number) {
+	shares = [];
+	var i = 0;
+	for (i; i < number; i++) {
+		var amountDecider = Math.random();
+		var increment = 0;
+		var amount1 = 0;
+		var amount2 = 0;
+		var percentage1 = randomNumber(1, 100, 5);
+		var percentage2 = randomNumber(1, 100, 5);
+		if (amountDecider < 0.5) {
+			increment = 10;
+			amount1 = randomNumber(10, 150, increment);
+		}
+		else {
+			increment = 50;
+			amount1 = randomNumber(150, 1000, increment);
+		}
+		amount2 = amount1*percentage1/percentage2;
+		amount2 = Math.round(amount2/increment)*increment;
+		amount2 = amount2 === 0 ? amount1 : amount2;
+		shares.push([percentage1, amount1, percentage2, amount2]);
+
+	}
+	function randomNumber (min, max, increment) {
+		var number = min + (max-min)*Math.random();
+		var number = Math.round(number/increment)*increment;
+		return (number>min) ? number : min;
+	}
 }
 
 
