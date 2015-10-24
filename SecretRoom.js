@@ -37,18 +37,20 @@ var score = [0,0];
 
 /*Functions*/
 
-function preLoad () {
+function preLoad (test) {
 	//copies array as using shift, and thus can reset at end. Or could use an incrementer and track within the code
 	//shares = sharesOrig.slice();
 	
 	//Randomly generated array
-	randomShares(10);
+	var questions = 10;
+	score = [0, questions];
+	randomShares(questions);
 	
 	/*Graphically
 	//adds div to screen which will contain game
 	var $game = $("<div>", {id: "game"});
 	$("body").append($game);*/
-	preLoadDOM();
+	preLoadDOM(test);
 }
 function load () {
 	
@@ -126,16 +128,16 @@ function reset () {
 	$('#game').remove();
 }
 
-function fullReset() {
+function fullReset(test) {
 	reset();
-	preLoad();
+	preLoad(test);
 	load();
 }
 
 
 //DOM functions
 
-function preLoadDOM () {
+function preLoadDOM (test) {
 	/*Graphically*/
 	//adds div to screen which will contain game
 	var $game = $("<div>", {id: "game", class: "container"});
@@ -145,6 +147,12 @@ function preLoadDOM () {
 	var $note = $("<h4>").text("\(click either if they are the same\)");
 	var $score = $("<h4>", {id: "score"});
 	$game.append($question, $note, $score);
+	
+	if (test) {
+		console.log(test);
+		var $answers = $("<div>", {id: "answers"});
+		$game.append($answers);
+	}
 }
 function loadDOM () {
 	//graphically
@@ -153,14 +161,22 @@ function loadDOM () {
 	//insert buttons with the shares on them. OnClick checkAnswer
 	
 	//clear old buttons
-	$("#game").children(".btn").remove();
+	$game = $("#game");
+	$game.children(".btn").remove();
+	$("#answers").children().remove();
+	
 	
 	
 	var statement1 = createStatement(1);
 	var statement2 = createStatement(2);
 	var $statement1 = $("<a>", {id:'statement1', class: "btn btn-default "}).text(statement1).click(checkAnswer);
 	var $statement2 = $("<a>", {id:'statement2', class: "btn btn-default"}).text(statement2).click(checkAnswer);
-	$("#game").append($statement1, $statement2);
+	$game.append($statement1, $statement2);
+	
+	var $answer1 = $("<p>").text(share1);
+	var $answer2 = $("<p>").text(share2);
+	$("#answers").append($answer1, $answer2);
+	
 }
 
 function updateScore () {
@@ -221,7 +237,6 @@ function createStatement (statementNumber) {
 
 function incrementScore (amount) { //amount should really only by 0 or 1
 	score[0] += amount;
-	score[1] += 1;
 }
 
 function randomShares(number) {
@@ -229,11 +244,13 @@ function randomShares(number) {
 	var i = 0;
 	for (i; i < number; i++) {
 		var amountDecider = Math.random();
+		var whichAmountGreater = Math.random();
 		var increment = 0;
 		var amount1 = 0;
 		var amount2 = 0;
 		var percentage1 = randomNumber(1, 100, 5);
 		var percentage2 = randomNumber(1, 100, 5);
+		var percentageDiff = randomNumber(0, 0.4, 0.01); 
 		if (amountDecider < 0.5) {
 			increment = 10;
 			amount1 = randomNumber(10, 150, increment);
@@ -243,14 +260,27 @@ function randomShares(number) {
 			amount1 = randomNumber(150, 1000, increment);
 		}
 		amount2 = amount1*percentage1/percentage2;
-		amount2 = Math.round(amount2/increment)*increment;
-		amount2 = amount2 === 0 ? amount1 : amount2;
-		shares.push([percentage1, amount1, percentage2, amount2]);
+		amount2 = amount2*(1-percentageDiff);
+		if (amount2 < 150) {
+			amount2 = Math.ceil(amount2/10)*10; //increment shouldn't be hardcoded. refactor, used ceil to avoid outputting 0 but should work out a more elegant soln
+			//amount2 = Math.round(amount2/increment)*increment; //(used more than once) *1: refactor to a seperate function
+		}
+		else {
+			amount2 = Math.round(amount2/50)*50;
+		}
+		//refactor following
+		if (amountDecider < 0.5) {
+			shares.push([percentage1, amount1, percentage2, amount2]);
+		}
+		else {
+			shares.push([percentage2, amount2, percentage1, amount1]);
+		}
+		
 
 	}
 	function randomNumber (min, max, increment) {
 		var number = min + (max-min)*Math.random();
-		var number = Math.round(number/increment)*increment;
+		var number = Math.round(number/increment)*increment; //(*1)
 		return (number>min) ? number : min;
 	}
 }
